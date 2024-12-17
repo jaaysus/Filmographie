@@ -6,7 +6,7 @@ const MovieList = ({ movies, onMovieClick, onFavoriteToggle }) => {
     <div className="movie-list">
       {movies.map((movie) => (
         <MovieCard
-          key={movie.title}
+          key={movie.id || movie.title + movie.releaseYear} // Use a unique ID if available, else combine title and year
           movie={movie}
           onClick={onMovieClick}
           onFavoriteToggle={onFavoriteToggle}

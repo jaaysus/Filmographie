@@ -1,14 +1,12 @@
-// App.js
+// src/App.js
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import FilmsPage from './pages/FilmsPage';
+import FavoritesPage from './pages/FavoritesPage';
+import CreateFilmPage from './pages/CreateFilmPage';
+import UpdateFilmPage from './pages/UpdateFilmPage';
 import Header from './components/Header';
-import SearchBar from './components/SearchBar';
-import MovieList from './components/MovieList';
-import MovieDetails from './components/MovieDetails';
-import SortButtons from './components/SortButtons';
-import AddFilmForm from './components/AddFilmForm';
-import Pagination from './components/Pagination';
-import FavoriteMovies from './components/FavoriteMovies';
-import Footer from './components/Footer';
+
 import './App.css';
 
 const App = () => {
@@ -25,72 +23,45 @@ const App = () => {
     { title: "The Lord of the Rings: The Return of the King", director: "Peter Jackson", releaseYear: 2003, genre: "Fantasy", rating: 9.0, favorite: false }
   ]);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const moviesPerPage = 5;
-
-  const filteredMovies = movies.filter(
-    (movie) =>
-      movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      movie.genre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
-  const displayedMovies = filteredMovies.slice(
-    (currentPage - 1) * moviesPerPage,
-    currentPage * moviesPerPage
-  );
-
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-    setCurrentPage(1); // Reset to first page after search
-  };
-
-  const handleSort = (criterion) => {
-    const sortedMovies = [...movies].sort((a, b) => b[criterion] - a[criterion]);
-    setMovies(sortedMovies);
-  };
+  const [favoriteMovies, setFavoriteMovies] = useState([]);
 
   const handleAddFilm = (newFilm) => {
-    setMovies([...movies, { ...newFilm, favorite: false }]);
+    setMovies([...movies, newFilm]);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handleUpdateFilm = (id, updatedFilm) => {
+    const updatedMovies = movies.map((m, index) => (index === parseInt(id) ? updatedFilm : m));
+    setMovies(updatedMovies);
   };
 
-  const toggleFavorite = (title) => {
-    setMovies((prevMovies) =>
-      prevMovies.map((movie) =>
-        movie.title === title ? { ...movie, favorite: !movie.favorite } : movie
-      )
-    );
+  const handleFavoriteToggle = (movie) => {
+    if (favoriteMovies.includes(movie)) {
+      setFavoriteMovies(favoriteMovies.filter((fav) => fav !== movie));
+    } else {
+      setFavoriteMovies([...favoriteMovies, movie]);
+    }
   };
 
   return (
-    <div className="App">
+    <Router>
       <Header />
-      <SearchBar onSearch={handleSearch} />
-      <SortButtons onSort={handleSort} />
-      <MovieList
-        movies={displayedMovies}
-        onMovieClick={setSelectedMovie}
-        onFavoriteToggle={toggleFavorite}
-      />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
-      <MovieDetails movie={selectedMovie} />
-      <FavoriteMovies
-        movies={movies.filter((movie) => movie.favorite)}
-        onRemoveFavorite={toggleFavorite}
-      />
-      <AddFilmForm onAddFilm={handleAddFilm} />
-      <Footer />
-    </div>
+      <div>
+      <nav>
+          <ul>
+            <li><Link to="/films">Liste des Films</Link></li>
+            <li><Link to="/favoris">Films Favoris</Link></li>
+            <li><Link to="/createFilm">Ajouter un Film</Link></li>
+          </ul>
+        </nav>
+      <Routes>
+        
+        <Route path="/films" element={<FilmsPage movies={movies} onFavoriteToggle={handleFavoriteToggle} />} />
+        <Route path="/favoris" element={<FavoritesPage favoriteMovies={favoriteMovies} onFavoriteToggle={handleFavoriteToggle} />} />
+        <Route path="/createFilm" element={<CreateFilmPage onAddFilm={handleAddFilm} />} />
+        <Route path="/updateFilm/:filmId" element={<UpdateFilmPage movies={movies} onUpdateFilm={handleUpdateFilm} />} />
+      </Routes>
+      </div>
+    </Router>
   );
 };
 
